@@ -37,6 +37,9 @@ module Inbox
     end
 
     def first
+      @filters[:offset] = 0
+      @filters[:limit] = 1
+
       get_model_collection.first
     end
 

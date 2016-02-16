@@ -174,4 +174,38 @@ describe Nylas::RestfulModelCollection do
         api.messages.where(:to => 'someone@nylas.com', :limit => 10, :offset => 5).each do |a|
         end
   end
+
+  it 'can chain first with where, and gives first precedence' do
+      stub_request(:get, "https://#{access_token}:@api.nylas.com/messages?limit=1&offset=0&to=someone%40nylas%2ecom").
+        to_return(:status => 200,
+                  :body => File.read('spec/fixtures/messages_reply_2.txt'),
+                  :headers => {'Content-Type' => 'application/json'})
+
+        message = api.messages.where(:to => 'someone@nylas.com', :limit => 10, :offset => 5).first
+  end
+
+  it 'can issue multiple filtered requests, each with the correct parameters' do
+      stub_request(:get, "https://#{access_token}:@api.nylas.com/messages?limit=1&offset=0&to=someone%40nylas%2ecom").
+        to_return(:status => 200,
+                  :body => File.read('spec/fixtures/messages_reply_2.txt'),
+                  :headers => {'Content-Type' => 'application/json'})
+
+        message = api.messages.where(:to => 'someone@nylas.com', :limit => 10, :offset => 5).first
+
+      stub_request(:get, "https://#{access_token}:@api.nylas.com/messages?limit=10&offset=5&to=someone%40nylas%2ecom").
+        to_return(:status => 200,
+                  :body => File.read('spec/fixtures/messages_reply_2.txt'),
+                  :headers => {'Content-Type' => 'application/json'})
+
+        api.messages.where(:to => 'someone@nylas.com', :limit => 10, :offset => 5).each do |a|
+        end
+
+      stub_request(:get, "https://#{access_token}:@api.nylas.com/messages?limit=10&offset=0&to=someone%40nylas%2ecom").
+        to_return(:status => 200,
+                  :body => File.read('spec/fixtures/messages_reply_2.txt'),
+                  :headers => {'Content-Type' => 'application/json'})
+
+        api.messages.where(:to => 'someone@nylas.com', :limit => 10).each do |a|
+        end
+  end
 end
