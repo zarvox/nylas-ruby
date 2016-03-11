@@ -102,6 +102,7 @@ module Inbox
       if ::RestClient.before_execution_procs.empty?
         ::RestClient.add_before_execution_proc do |req, params|
           req.add_field('X-Inbox-API-Wrapper', 'ruby')
+          req['Authorization'] = "Bearer #{@access_token}"
           req['User-Agent'] = "Nylas Ruby SDK #{@version} - #{RUBY_VERSION}"
         end
       end
@@ -110,7 +111,7 @@ module Inbox
     def url_for_path(path)
       raise NoAuthToken.new if @access_token == nil and (@app_secret != nil or @app_id != nil)
       protocol, domain = @api_server.split('//')
-      "#{protocol}//#{@access_token}:@#{domain}#{path}"
+      "#{protocol}//#{domain}#{path}"
     end
 
     def url_for_authentication(redirect_uri, login_hint = '', options = {})
